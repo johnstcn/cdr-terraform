@@ -49,6 +49,7 @@ resource "azurerm_kubernetes_cluster" "primary" {
   }
   tags = {
     Environment = "Dev Cluster"
+    Owner = "cian@coder.com"
   }
 }
 
