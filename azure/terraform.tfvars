@@ -1,5 +1,5 @@
 // variable definitions
-name            = "coder-cian"    // resource group name
+name            = "cian"          // resource group name prefix
 location        = "westeurope"    // the region in which your cluster will be deployed
 namespace       = "coder"         // the k8s namespace in which coder will be installed
 coder_version   = null            // coder version to be installed - if null, latest version will be used
