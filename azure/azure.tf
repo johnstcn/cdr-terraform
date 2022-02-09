@@ -79,3 +79,10 @@ resource "azurerm_role_assignment" "k8s_primary_acrpull" {
   scope                            = azurerm_container_registry.registry.id
   skip_service_principal_aad_check = true
 }
+
+// create identity for coder to access ACR
+resource "azurerm_user_assigned_identity" "coder-identity" {
+  resource_group_name = azurerm_resource_group.primary.name
+  location            = azurerm_resource_group.primary.location
+  name = "coder-identity"
+}

@@ -37,3 +37,25 @@ resource "helm_release" "cdr-chart" {
   version    = var.coder_version
   namespace  = var.namespace
 }
+
+// apply annotations to coder service account
+// need to do this hackily due to https://github.com/hashicorp/terraform-provider-kubernetes/issues/692
+// used approach from https://github.com/hashicorp/terraform-provider-kubernetes/issues/723#issuecomment-914593460
+resource "null_resource" "patch-coder-service-account" {
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+
+  provisioner "local-exec" {
+    command = "kubectl -n $CODER_NS annotate --overwrite serviceaccount $CODER_SA azure.workload.identity/client-id=$CLIENT_ID azure.workload.identity/use=true"
+    environment = {
+      CODER_NS  = var.namespace
+      CODER_SA  = "coder"
+      CLIENT_ID = azurerm_user_assigned_identity.coder-identity.client_id
+    }
+  }
+  depends_on = [
+    helm_release.cdr-chart,
+    azurerm_user_assigned_identity.coder-identity
+  ]
+}
