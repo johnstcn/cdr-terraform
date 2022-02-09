@@ -24,6 +24,14 @@ resource "azurerm_subnet" "subnet" {
   virtual_network_name = azurerm_virtual_network.cluster-network.name
 }
 
+// create container registry
+resource "azurerm_container_registry" "registry" {
+  name                 = "${var.name}reg"
+  sku                  = "basic"
+  resource_group_name  = azurerm_resource_group.primary.name
+  location             = azurerm_resource_group.primary.location
+}
+
 // create azure cluster to host coder
 resource "azurerm_kubernetes_cluster" "primary" {
   name                = "${var.name}-cluster"
@@ -62,4 +70,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "primary_nodes" {
   max_count             = var.max_count
   min_count             = var.min_count
   os_disk_size_gb       = var.os_disk_size_gb
+}
+
+// create role assignment for cluster to access registry
+resource "azurerm_role_assignment" "k8s_primary_acrpull" {
+  principal_id                     = azurerm_kubernetes_cluster.primary.kubelet_identity[0].object_id
+  role_definition_name             = "AcrPull"
+  scope                            = azurerm_container_registry.registry.id
+  skip_service_principal_aad_check = true
 }
