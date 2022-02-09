@@ -19,6 +19,12 @@ resource "kubernetes_namespace" "coder-ns" {
   }
 }
 
+resource "kubernetes_namespace" "azure-workload-identity-ns" {
+  metadata {
+    name = "azure-workload-identity-system"
+  }
+}
+
 // helm provider declaration
 provider "helm" {
   kubernetes {
@@ -29,6 +35,22 @@ provider "helm" {
   }
 }
 
+// pull down Azure workload identity helm chart and install it
+resource "helm_release" "azure-workload-identity-chart" {
+  name       = "azure-workload-identity-chart"
+  repository = "https://azure.github.io/azure-workload-identity/charts"
+  chart = "workload-identity-webhook"
+  version = var.awi_version
+  namespace = "azure-workload-identity-system"
+  set {
+    name = "azureTenantID"
+    value = var.tenant_id
+  }
+  depends_on = [
+    kubernetes_namespace.azure-workload-identity-ns
+  ]
+}
+
 // pull down Coder helm chart & install it
 resource "helm_release" "cdr-chart" {
   name       = "cdr-chart"
@@ -36,6 +58,9 @@ resource "helm_release" "cdr-chart" {
   chart      = "coder"
   version    = var.coder_version
   namespace  = var.namespace
+  depends_on = [
+    kubernetes_namespace.coder-ns
+  ]
 }
 
 // apply annotations to coder service account

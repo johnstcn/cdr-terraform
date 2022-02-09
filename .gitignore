@@ -1,2 +1,1 @@
-**/*.tfplan
-**/*.swp
+**/secret.tfvars

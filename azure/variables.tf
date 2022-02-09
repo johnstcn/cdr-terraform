@@ -8,5 +8,9 @@ variable "address_space" {}
 variable "os_disk_size_gb" {}
 variable "namespace" {}
 variable "coder_version" {}
+variable "awi_version" {}
+variable "tenant_id" {
+  sensitive = true
+}
 variable "min_count" {}
 variable "max_count" {}
