@@ -72,15 +72,36 @@ resource "null_resource" "patch-coder-service-account" {
   }
 
   provisioner "local-exec" {
-    command = "kubectl -n $CODER_NS annotate --overwrite serviceaccount $CODER_SA azure.workload.identity/client-id=$CLIENT_ID azure.workload.identity/use=true"
+    command = "kubectl -n $CODER_NS annotate --overwrite serviceaccount $CODER_SA azure.workload.identity/client-id=$CLIENT_ID"
     environment = {
       CODER_NS  = var.namespace
       CODER_SA  = "coder"
       CLIENT_ID = azurerm_user_assigned_identity.coder-identity.client_id
     }
   }
+
   depends_on = [
     helm_release.cdr-chart,
     azurerm_user_assigned_identity.coder-identity
+  ]
+}
+
+resource "null_resource" "patch-coder-service-account-label" {
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+
+  provisioner "local-exec" {
+    command = "kubectl -n $CODER_NS label --overwrite serviceaccount $CODER_SA azure.workload.identity/use=true"
+    environment = {
+      CODER_NS  = var.namespace
+      CODER_SA  = "coder"
+    }
+  }
+
+  depends_on = [
+    helm_release.cdr-chart,
+    azurerm_user_assigned_identity.coder-identity,
+    null_resource.patch-coder-service-account
   ]
 }
