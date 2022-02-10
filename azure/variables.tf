@@ -12,5 +12,11 @@ variable "awi_version" {}
 variable "tenant_id" {
   sensitive = true
 }
+variable "app_id" {
+  sensitive = true
+}
+variable "subscription_id" {
+  sensitive = true
+}
 variable "min_count" {}
 variable "max_count" {}

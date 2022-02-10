@@ -86,3 +86,16 @@ resource "azurerm_user_assigned_identity" "coder-identity" {
   location            = azurerm_resource_group.primary.location
   name = "coder-identity"
 }
+
+// create az ad sp for rbac
+resource "azuread_service_principal" "coder-rbac-sp" {
+  alternative_names = [
+    "/subscriptions/${var.subscription_id}/resourcegroups/${azurerm_resource_group.primary.name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/coder-identity",
+    "isExplicit=True"
+  ]
+  application_id = var.app_id
+  description = ""
+  notes = ""
+  preferred_single_sign_on_mode = ""
+}
+
