@@ -80,22 +80,33 @@ resource "azurerm_role_assignment" "k8s_primary_acrpull" {
   skip_service_principal_aad_check = true
 }
 
-// create identity for coder to access ACR
-resource "azurerm_user_assigned_identity" "coder-identity" {
+// create identity for coderd to access ACR
+resource "azurerm_user_assigned_identity" "coderd-identity" {
   resource_group_name = azurerm_resource_group.primary.name
   location            = azurerm_resource_group.primary.location
-  name = "coder-identity"
+  name = "${var.name}-coderd-identity"
 }
 
-// create az ad sp for rbac
-resource "azuread_service_principal" "coder-rbac-sp" {
-  alternative_names = [
-    "/subscriptions/${var.subscription_id}/resourcegroups/${azurerm_resource_group.primary.name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/coder-identity",
-    "isExplicit=True"
-  ]
-  application_id = var.app_id
+// create role assignment for coderd identity to access registry
+resource "azurerm_role_assignment" "coderd-acrpull" {
+  principal_id                     = azurerm_user_assigned_identity.coderd-identity.principal_id
+  role_definition_name             = "AcrPull"
+  scope                            = azurerm_container_registry.registry.id
+  skip_service_principal_aad_check = true
+}
+
+// create azure ad application for coderd
+resource "azuread_application" "coderd-azad-app" {
+  display_name = "${var.name}-coderd-app"
+  prevent_duplicate_names = true
+}
+
+// create az federated identity credential
+resource "azuread_application_federated_identity_credential" "coder-identity-federated" {
+  application_object_id = azuread_application.coderd-azad-app.object_id
+  display_name = "${var.name}-coderd"
   description = ""
-  notes = ""
-  preferred_single_sign_on_mode = ""
+  audiences = ["api://AzureADTokenExchange"]
+  issuer = var.oidc_issuer // TODO: this is a circular dependency
+  subject = "system:serviceaccount:${kubernetes_namespace.coder-ns.metadata[0].name}:${var.serviceaccount}"
 }
-

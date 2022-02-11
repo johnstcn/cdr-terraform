@@ -2,6 +2,7 @@
 name            = "cian"          // resource group name prefix
 location        = "westeurope"    // the region in which your cluster will be deployed
 namespace       = "coder"         // the k8s namespace in which coder will be installed
+serviceaccount = "coder"          // the k8s service account for coder (created by helm chart)
 coder_version   = null            // coder version to be installed - if null, latest version will be used
 awi_version     = null            // azure workload identity version to be installed - if null, latest version will be used
 node_vm_size    = "Standard_B4ms" // node size to be used by k8s. see additional VM sizes: https://docs.microsoft.com/en-us/azure/virtual-machines/sizes

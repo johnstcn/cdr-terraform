@@ -75,14 +75,14 @@ resource "null_resource" "patch-coder-service-account" {
     command = "kubectl -n $CODER_NS annotate --overwrite serviceaccount $CODER_SA azure.workload.identity/client-id=$CLIENT_ID"
     environment = {
       CODER_NS  = var.namespace
-      CODER_SA  = "coder"
-      CLIENT_ID = azurerm_user_assigned_identity.coder-identity.client_id
+      CODER_SA  = var.serviceaccount
+      CLIENT_ID = azurerm_user_assigned_identity.coderd-identity.client_id
     }
   }
 
   depends_on = [
     helm_release.cdr-chart,
-    azurerm_user_assigned_identity.coder-identity
+    azurerm_user_assigned_identity.coderd-identity
   ]
 }
 
@@ -95,13 +95,13 @@ resource "null_resource" "patch-coder-service-account-label" {
     command = "kubectl -n $CODER_NS label --overwrite serviceaccount $CODER_SA azure.workload.identity/use=true"
     environment = {
       CODER_NS  = var.namespace
-      CODER_SA  = "coder"
+      CODER_SA  = var.serviceaccount
     }
   }
 
   depends_on = [
     helm_release.cdr-chart,
-    azurerm_user_assigned_identity.coder-identity,
+    azurerm_user_assigned_identity.coderd-identity,
     null_resource.patch-coder-service-account
   ]
 }
