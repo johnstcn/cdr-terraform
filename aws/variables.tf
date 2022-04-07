@@ -9,4 +9,5 @@ variable "max_size" {}
 variable "min_size" {}
 variable "availability_zone_1" {}
 variable "availability_zone_2" {}
-
+variable "ssh_pubkey" {}
+variable "ami_name" {}

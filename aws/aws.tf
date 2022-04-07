@@ -7,7 +7,7 @@ provider "aws" {
 resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr_block
   tags = {
-    Name = "Coder VPC"
+    Name = "${var.name}"
   }
 }
 
@@ -16,7 +16,7 @@ resource "aws_internet_gateway" "gateway" {
   vpc_id = aws_vpc.vpc.id
 
   tags = {
-    Name = "Coder Internet Gateway"
+    Name = "${var.name}"
   }
 }
 
@@ -66,7 +66,7 @@ resource "aws_route_table_association" "routetablea2" {
 
 // create node group iam role
 resource "aws_iam_role" "coderiamnoderole" {
-  name = "coder-eks-node"
+  name = "${var.name}"
 
   assume_role_policy = <<POLICY
 {
@@ -158,7 +158,7 @@ data "aws_ami" "ubuntu" {
 
   filter {
     name   = "name"
-    values = ["ubuntu-eks/k8s_1.21/images/hvm-ssd/ubuntu-focal-20.04-arm64-server-20211005"]
+    values = ["${var.ami_name}"]
   }
 
   filter {
@@ -183,7 +183,7 @@ resource "aws_launch_template" "coder-node" {
   name                   = "${var.name}-node"
   image_id               = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
-  key_name               = "coder-key-pair"
+  key_name               = "${var.name}-key-pair"
   vpc_security_group_ids = [aws_security_group.codersg-node.id]
   user_data              = base64encode(local.codercvm-node-userdata)
 
@@ -191,7 +191,7 @@ resource "aws_launch_template" "coder-node" {
     resource_type = "instance"
 
     tags = {
-      Name = "Coder"
+      Name = "${var.name}"
     }
   }
 }
@@ -199,18 +199,18 @@ resource "aws_launch_template" "coder-node" {
 // key pair for accessing ec2 instances
 resource "aws_key_pair" "coder-key-pair" {
   key_name   = "${var.name}-key-pair"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCxajecymvENWJdjgs/Y6ExTNRGWlqV78/67lLgg/IgVH60aQ++uFEVGBBDjBC1I7db2yBr10gEcwbdy6AYyU9A0p7hdBM8e8sXh+4RNInKzgSTPpqcPmbVo/Eb9/+WA+wH6MVEI3h9tL3u2MFPsXpKmWy76fOOwI7/K/89llXx1GWFqmXl9myL8yY2llKdmBP1VfNR2i7bGxhdj1xgdz+ssufctVJRRsRTjYgPK93/yHKk5ePH+ZK45Gt0wpGijCpw/c4pjgO8h7flD4jQCHfkTRPZQt+pXQ1EHi77Plp0zBPgZR5ZDZyGBDx22j3Us+ENifTXOZ7baKk4lgKsy9592hakT+SFKh8eGzDn5KkgCVeRJZZEqmx2lZ230uGiqxmpG53Y2DFTwBMnxfKBrygW9JIvzmylvo5tiI0TCs1PlRr57NUYucbsOASzgVttcABLZ13QKFRp5UAh+5nWkZqzBKwFPV3cSf3P+WG/MQ6w1XCUjsbNujOHA7j1n/c+YyM= eric@erics-MacBook-Pro"
+  public_key = "${var.ssh_pubkey}"
 }
 
 // create node group for ec2 instances
 resource "aws_eks_node_group" "codercvms" {
   cluster_name    = aws_eks_cluster.primary.name
-  node_group_name = "codercvms"
+  node_group_name = "${var.name}"
   node_role_arn   = aws_iam_role.coderiamnoderole.arn
   subnet_ids      = [aws_subnet.subnet1.id, aws_subnet.subnet2.id]
 
   tags = {
-    Name = "Coder"
+    Name = "${var.name}"
   }
 
   scaling_config {
@@ -251,7 +251,7 @@ resource "aws_security_group" "codersg" {
   }
 
   tags = {
-    Name                             = "Coder"
+    Name                             = "${var.name}"
     "kubernetes.io/cluster/codervpc" = "owned"
   }
 }
@@ -270,7 +270,7 @@ resource "aws_security_group" "codersg-node" {
   }
 
   tags = {
-    Name                             = "Coder"
+    Name                             = "${var.name}"
     "kubernetes.io/cluster/codervpc" = "owned"
   }
 }
