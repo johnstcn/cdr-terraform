@@ -61,6 +61,7 @@ resource "helm_release" "cdr-chart" {
   depends_on = [
     kubernetes_namespace.coder-ns
   ]
+  values     = [ "${file("values.yaml")}" ]
 }
 
 // apply annotations to coder service account

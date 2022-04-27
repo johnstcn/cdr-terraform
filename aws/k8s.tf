@@ -43,4 +43,5 @@ resource "helm_release" "cdr-chart" {
   chart      = "coder"
   namespace  = var.namespace
   version    = var.coder_version
+  values     = [ "${file("values.yaml")}" ]
 }

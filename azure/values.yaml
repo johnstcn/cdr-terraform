@@ -1,0 +1,8 @@
+---
+coderd:
+  extraEnvs:
+    - name: "OIDC_DEBUG"
+      value: "true"
+    - name: "CODER_MAX_WORKSPACES_PER_USER"
+      value: "2"
+...
